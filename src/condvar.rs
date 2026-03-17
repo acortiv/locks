@@ -9,6 +9,12 @@ pub struct Condvar {
     num_waiters: AtomicUsize,
 }
 
+impl Default for Condvar {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Condvar {
     pub const fn new() -> Self {
         Self {

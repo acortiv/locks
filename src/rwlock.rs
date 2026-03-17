@@ -4,7 +4,6 @@ use std::{
     cell::UnsafeCell,
     ops::{Deref, DerefMut},
     sync::atomic::{AtomicU32, Ordering},
-    u32,
 };
 
 use atomic_wait::{wait, wake_all, wake_one};
@@ -35,7 +34,7 @@ impl<T> RwLock<T> {
     pub fn read(&self) -> ReadGuard<'_, T> {
         let mut s = self.state.load(Ordering::Relaxed);
         loop {
-            if s % 2 == 0 {
+            if s.is_multiple_of(2) {
                 // Even
                 assert!(s != u32::MAX - 2, "too many readers");
                 match self.state.compare_exchange_weak(
@@ -72,7 +71,7 @@ impl<T> RwLock<T> {
                 }
             }
             // Block new readers, by making sure the state is odd.
-            if s % 2 == 0 {
+            if s.is_multiple_of(2) {
                 match self
                     .state
                     .compare_exchange(s, s + 1, Ordering::Relaxed, Ordering::Relaxed)
